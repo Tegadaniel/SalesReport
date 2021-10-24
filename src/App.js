@@ -1,10 +1,10 @@
 import "bootswatch/dist/lux/bootstrap.css";
-import Body from './components/Body';
+import Routes from "./routes";
 
 function App() {
   return (
-    <div className="container">
-    <Body/>
+    <div >
+    <Routes/>
     </div>
   );
 }

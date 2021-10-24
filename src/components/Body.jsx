@@ -3,6 +3,7 @@ import { Api } from "../api/Api";
 import "bootswatch/dist/lux/bootstrap.css";
 import "./Body.css";
 import { formatNumber } from "../helpers/utils";
+import MiddleLoader from "./MiddleLoader";
 
 export default function Body() {
   const [salesData, setsalesData] = useState([]);
@@ -50,9 +51,17 @@ export default function Body() {
   });
 
   useEffect(() => {
+    let cancel = false;
     Api()
-      .then((data) => setsalesData(data))
+      .then((data) => {
+        if (cancel) return;
+        setsalesData(data);
+        setLoading(false);
+      })
       .catch((error) => setError(error.message));
+    return () => {
+      cancel = true;
+    };
   }, []);
 
   console.log(salesData);
@@ -83,55 +92,66 @@ export default function Body() {
   }
 
   if (error) return <h1>{error}</h1>;
+
   return (
-    <div>
-      <table className="table table-hover">
-        <thead>
-          <tr>
-            <th scope="col">Category</th>
-            <th scope="col">Product Name</th>
-            <th scope="col">Price</th>
-            <th scope="col">Profit</th>
-            <th scope="col">Quantity</th>
-            <th scope="col">Country</th>
-          </tr>
-        </thead>
-        {currentItem.map((data, i) => {
-          return (
-            <tbody>
+    <>
+      {loading ? (
+        <MiddleLoader />
+      ) : (
+        <div className="pt-5 ">
+          <table className=" container table table-hover">
+            <thead>
               <tr className="table-dark">
-                <td>{data.Category}</td>
-                <td>{data["Product Name"]}</td>
-                <td>{formatNumber(data.Sales)}</td>
-                <td>{formatNumber(data.Profit)}</td>
-                <td>{data.Quantity}</td>
-                <td>{data.Country}</td>
+                <th scope="col">Category</th>
+                <th scope="col">Product Name</th>
+                <th scope="col">Segment</th>
+                <th scope="col">Price</th>
+                <th scope="col">Discount</th>
+                <th scope="col">Profit</th>
+                <th scope="col">Quantity</th>
               </tr>
-            </tbody>
-          );
-        })}
-      </table>
-      <ul className="pageNumbers">
-        <li>
-          <button
-            onClick={handlePrevbtn}
-            disabled={currentPage === pages[0] ? true : false}
-          >
-            Prev
-          </button>
-        </li>
-        {pageDecrementBtn}
-        {renderPageNumbers}
-        {pageIncrementBtn}
-        <li>
-          <button
-            onClick={handleNextbtn}
-            disabled={currentPage === pages[pages.length - 1] ? true : false}
-          >
-            Next
-          </button>
-        </li>
-      </ul>
-    </div>
+            </thead>
+            {currentItem.map((data, i) => {
+              return (
+                <tbody key={i * 3}>
+                  <tr className="table-dark">
+                    <td>{data.Category}</td>
+                    <td>{data["Product Name"]}</td>
+                    <td>{data.Segment}</td>
+                    <td>{formatNumber(data.Sales)}</td>
+                    <td>{formatNumber(data.Discount)}</td>
+                    <td>{formatNumber(data.Profit)}</td>
+                    <td>{data.Quantity}</td>
+                  </tr>
+                </tbody>
+              );
+            })}
+          </table>
+          <ul className="pageNumbers text-center">
+            <li>
+              <button
+                onClick={handlePrevbtn}
+                disabled={currentPage === pages[0] ? true : false}
+              >
+                Prev
+              </button>
+            </li>
+            {pageDecrementBtn}
+            {renderPageNumbers}
+            {pageIncrementBtn}
+            <li>
+              <button
+                onClick={handleNextbtn}
+                disabled={
+                  currentPage === pages[pages.length - 1] ? true : false
+                }
+              >
+                Next
+              </button>
+            </li>
+          </ul>
+        </div>
+      )}
+    </>
   );
 }
